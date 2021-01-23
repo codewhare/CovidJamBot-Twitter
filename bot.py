@@ -1,14 +1,11 @@
-from selenium import webdriver
-import json
-import datetime
-import schedule
-import time
-import csv
-from PIL import Image, ImageDraw, ImageFont
 from twython import Twython
-from secrets import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET, FIREBASE_URL
-from selenium.webdriver.chrome.options import Options
 from firebase import firebase
+from selenium import webdriver
+from PIL import Image, ImageDraw, ImageFont
+from selenium.webdriver.chrome.options import Options
+import json, os, logging, datetime, schedule, time, csv
+from webdriver_manager.chrome import ChromeDriverManager
+from secrets import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET, FIREBASE_URL
 
 data = {}
 
@@ -22,6 +19,8 @@ chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--no-sandbox")
+os.environ["WDM_LOG_LEVEL"] = str(logging.WARNING)
+chrome_options.add_experimental_option('excludeSwitches', ['enable-logging']) 
 
 firebase = firebase.FirebaseApplication(FIREBASE_URL, None)
 
@@ -179,7 +178,7 @@ def get4column(items):
 
 def Scrape(offset=1):
 
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
 
     try:
         global lastPull
@@ -269,7 +268,7 @@ def Scrape(offset=1):
 
             if not doingWeeklyReport:
                 Tweet(data['Confirmed Cases'][0], data['Deaths'][0], data['Recovered'][0], data['Confirmed Cases']
-                      [1], date, activeCases, hospitalized, data['Deaths'][1], testsDone, positivityRate, data['Recovered'][1])
+                     [1], date, activeCases, hospitalized, data['Deaths'][1], testsDone, positivityRate, data['Recovered'][1])
 
                 lastPull = today
                 setDate(lastPull)
@@ -313,8 +312,6 @@ def WeeklyReport():
 
     print("Report Created: " + weeklyReportName+".csv")
     doingWeeklyReport = False
-
-
 
 Scrape()
 schedule.every(1).minutes.do(Scrape)
