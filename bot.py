@@ -36,7 +36,6 @@ def getFileData():
 
 def setDate(today):
     data = {'date': today}
-    # result = firebase.put('/-MIbw9ruO-WoEuJfdK2E','date',data)
     print("Last Pull Date Set: " + today)
 
 def getDate():
