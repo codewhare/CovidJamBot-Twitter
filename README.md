@@ -23,11 +23,11 @@ CovidJamBot requires the following .
 
 | Items | Links |
 | ------ | ------ |
-| Twitter API | [https://developer.twitter.com/en/docs][PlDb] |
-| Heroku | [https://www.heroku.com][PlGh] |
-| Chrome WebDriver | [https://chromedriver.chromium.org/downloads][PlGd] |
-| Firebase | [https://www.firebase.com][PlOd] |
-| MOH | [https://www.moh.gov.jm/covid-19-resources-and-protocols/][PlMe] |
+| Twitter API | [https://developer.twitter.com/en/docs]|
+| Heroku | [https://www.heroku.com] |
+| Chrome WebDriver | [https://chromedriver.chromium.org/downloads] |
+| Firebase | [https://www.firebase.com] |
+| MOH | [https://www.moh.gov.jm/covid-19-resources-and-protocols/]|
 
 ### Todos
 
