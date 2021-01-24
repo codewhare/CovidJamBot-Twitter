@@ -3,7 +3,7 @@ from firebase import firebase
 from selenium import webdriver
 from PIL import Image, ImageDraw, ImageFont
 from selenium.webdriver.chrome.options import Options
-import json, os, logging, datetime, schedule, time, csv
+import os, logging, datetime, schedule, time, csv
 from webdriver_manager.chrome import ChromeDriverManager
 from secrets import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET, FIREBASE_URL
 
