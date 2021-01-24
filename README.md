@@ -25,7 +25,6 @@ CovidJamBot requires the following .
 | ------ | ------ |
 | Twitter API | [https://developer.twitter.com/en/docs]|
 | Heroku | [https://www.heroku.com] |
-| Chrome WebDriver | [https://chromedriver.chromium.org/downloads] |
 | Firebase | [https://www.firebase.com] |
 | MOH | [https://www.moh.gov.jm/covid-19-resources-and-protocols/]|
 
