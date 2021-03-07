@@ -102,8 +102,7 @@ def get3column(items):
         value = []
 
         for item in items:
-            text = item.text.replace("\n", " ")
-            text = text.strip()
+            text = extractText(item)
             count = count + 1
 
             if(count == 1):
@@ -133,6 +132,15 @@ def get3column(items):
         print(str(e))
         print("Failed with 3 columns")
 
+def extractText(item):
+    text = item.text.replace("\n", " ")
+    text = text.strip()
+    supTags = item.find_elements_by_tag_name('sup')
+    if (len(supTags)):
+        #assuming there is only one sup tag
+        #assuming sup tag is at the end of text
+        text = text[:-len(supTags[0].text)]
+    return text
 
 def get4column(items):
     try:
@@ -141,8 +149,7 @@ def get4column(items):
         value = []
 
         for item in items:
-            text = item.text.replace("\n", " ")
-            text = text.strip()
+            text = extractText(item)
             count = count + 1
 
             if(count == 1):
