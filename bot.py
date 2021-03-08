@@ -129,7 +129,7 @@ def Scrape(offset=1):
         x = datetime.datetime.now()
         print("\n\n")
         print("Scrape initialized: " + str(x))
-        y = x - datetime.timedelta(offset)  # Yesterday date")
+        y = x - datetime.timedelta(days=offset)  # Yesterday date")
         today = x.strftime("%x")
         print("Today a " + today)
 
