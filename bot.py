@@ -3,7 +3,7 @@ from firebase import firebase
 from selenium import webdriver
 from PIL import Image, ImageDraw, ImageFont
 from selenium.webdriver.chrome.options import Options
-import os, logging, datetime, schedule, time, csv
+import os, logging, datetime, schedule, time, csv, re, json
 from webdriver_manager.chrome import ChromeDriverManager
 from secrets import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET, FIREBASE_URL
 
@@ -94,94 +94,31 @@ def GenerateImage(new_cases, new_deaths, new_recoveries, overall_cases, date, ne
     img.save('post-out.png')
     print("Image generated")
 
-
-def get3column(items):
-    try:
-        count = 0
-        key = ""
-        value = []
-
-        for item in items:
-            text = extractText(item)
-            count = count + 1
-
-            if(count == 1):
-                key = text
-            if(count == 2):
-                value.append(text)
-            if(count == 3):
-                value.append(text)
-                data[key] = value
-                count = 0
-                key = ""
-                value = []
-
-        print("Deaths " + data['Deaths'][0])
-        print("Recovered cases " + data['Recovered'][0])
-        print("Confirmed cases " + data['Confirmed Cases'][0])
-        print("Number Hospitalised " + data['Number Hospitalised'][0])
-        print("Active Cases " + data['Active Cases'][1])
-
-        try:
-            print("Samples Tested " + data['Samples Tested'][0])
-        except:
-            print("Samples Tested " + data['New Samples Tested'][0])
-
-        print("\nThere were 3 Columns Today")
-    except Exception as e:
-        print(str(e))
-        print("Failed with 3 columns")
-
-def extractText(item):
+def extractText(item, column):
     text = item.text.replace("\n", " ")
     text = text.strip()
     supTags = item.find_elements_by_tag_name('sup')
+
     if (len(supTags)):
         #assuming there is only one sup tag
         #assuming sup tag is at the end of text
         text = text[:-len(supTags[0].text)]
+
+    #assuming 2nd and 3rd are integer values
+    if column > 0 and column < 3:
+        #strip any non integer values
+        text = re.sub("[^\d]","",text)
+
     return text
 
-def get4column(items):
-    try:
-        count = 0
-        key = ""
-        value = []
-
-        for item in items:
-            text = extractText(item)
-            count = count + 1
-
-            if(count == 1):
-                key = text
-            if(count == 2):
-                value.append(text)
-            if(count == 3):
-                value.append(text)
-            if(count == 4):
-                value.append(text)
-            if(count == 5):
-                data[key] = value
-                count = 1
-                key = text
-                value = []
-
-        print("Deaths " + data['Deaths'][0])
-        print("Recovered cases " + data['Recovered'][0])
-        print("Confirmed cases " + data['Confirmed Cases'][0])
-        print("Number Hospitalised " + data['Number Hospitalised'][0])
-        print("Active Cases " + data['Active Cases'][1])
-        try:
-            print("Samples Tested " + data['Samples Tested'][0])
-        except:
-            print("Samples Tested " + data['New Samples Tested'][0])
-
-        print("\nThere were 4 Columns Today")
-    except Exception as e:
-        print(str(e))
-        print("Failed with 4 columns")
-        get3column(items)
-
+def getTableData(driver):
+   rows = driver.find_elements_by_tag_name('tr')
+   rows = [[extractText(element, column) for column, element in enumerate(row.find_elements_by_tag_name('td'))] for row in rows]
+   for row in rows:
+       key  = row[0]
+       value = row[1:]
+       data[key] = value
+   print(json.dumps(data, indent=5))
 
 def Scrape(offset=1):
 
@@ -207,14 +144,12 @@ def Scrape(offset=1):
             url2 = "covid-19-update-for-covid-19-clinical-management-summary-for-" + urlDate
             try:
                 driver.get(url)
-                items = driver.find_elements_by_tag_name("td")
                 print("URL: " + url)
             except:
                 driver.get(url2)
-                items = driver.find_elements_by_tag_name("td")
                 print("URL: " + url2)
 
-            get4column(items)
+            getTableData(driver)
 
             date = y.strftime("%B") + " " + y.strftime("%d") + \
                 ", "+y.strftime("%Y")
