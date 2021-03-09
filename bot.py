@@ -191,21 +191,32 @@ def Scrape(offset=1):
 
         if(lastPull != today or doingWeeklyReport):
             urlDate = y.strftime("%A") + "-"+y.strftime("%B") + \
-                "-" + y.strftime("%-d")+"-"+y.strftime("%Y")
+                "-" + y.strftime("%d").lstrip("0") +"-"+y.strftime("%Y")
+            
+            urlDate2 = y.strftime("%A") + "-"+y.strftime("%B") + \
+                "-" + y.strftime("%d") +"-"+y.strftime("%Y")
+
             print("Last Pull: "+lastPull)
             print("URLDate: " + urlDate)
             print("Today: " + today)
 
             url = "https://www.moh.gov.jm/covid-19-clinical-management-summary-for-" + urlDate
             url2 = "covid-19-update-for-covid-19-clinical-management-summary-for-" + urlDate
+            url3 = "covid-19-update-for-covid-19-clinical-management-summary-for-" + urlDate2
+            
             try:
                 driver.get(url)
                 items = driver.find_elements_by_tag_name("td")
                 print("URL: " + url)
             except:
-                driver.get(url2)
-                items = driver.find_elements_by_tag_name("td")
-                print("URL: " + url2)
+                try:
+                    driver.get(url2)
+                    items = driver.find_elements_by_tag_name("td")
+                    print("URL: " + url2)
+                except:
+                    driver.get(url3)
+                    items = driver.find_elements_by_tag_name("td")
+                    print("URL: " + url3)
 
             get4column(items)
 
@@ -213,9 +224,17 @@ def Scrape(offset=1):
                 ", "+y.strftime("%Y")
 
             try:
-                testsDone = data['Samples Tested'][0].replace(",", "")
+                samples = data['Samples Tested'][0]
+                hasExcessNumber = len(samples.split(",")) > 1 and len(samples.split(",")[-1]) > 3
+                testsDone = samples.replace(",", "")
+                if hasExcessNumber:
+                    testsDone = testsDone[:-1]
             except:
-                testsDone = data['New Samples Tested'][0].replace(",", "")
+                samples = data['New Samples Tested'][0]
+                hasExcessNumber = len(samples.split(",")) > 1 and len(samples.split(",")[-1]) > 3
+                testsDone = samples.replace(",", "")
+                if hasExcessNumber:
+                    testsDone = testsDone[:-1]
 
             positivityRate = str(round(
                 (int(data["Confirmed Cases"][0].replace(",", "")) / int(testsDone)) * 100, 2)
