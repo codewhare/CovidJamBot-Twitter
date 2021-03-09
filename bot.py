@@ -201,8 +201,8 @@ def Scrape(offset=1):
             print("Today: " + today)
 
             url = "https://www.moh.gov.jm/covid-19-clinical-management-summary-for-" + urlDate
-            url2 = "covid-19-update-for-covid-19-clinical-management-summary-for-" + urlDate
-            url3 = "covid-19-update-for-covid-19-clinical-management-summary-for-" + urlDate2
+            url2 = "https://www.moh.gov.jm/covid-19-clinical-management-summary-for-" + urlDate2
+            url3 = "https://www.moh.gov.jm/covid-19-update-for-covid-19-clinical-management-summary-for-" + urlDate
             
             try:
                 driver.get(url)
