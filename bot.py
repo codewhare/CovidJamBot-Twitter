@@ -6,6 +6,9 @@ from PIL import Image, ImageDraw, ImageFont
 from twython import Twython
 from firebase import firebase
 from secrets import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET, FIREBASE_URL
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
 data = {}
 header = {
@@ -228,6 +231,70 @@ def GenerateImage(new_cases, new_deaths, new_recoveries, overall_cases, date, ne
               fill=(255, 255, 255))  # positivity rate
     img.save('post-out.png')
     print("Image generated")
+
+
+def weekly_positivity_rate():
+    """
+    Call this function to calculate the 7 day positivity rate for public and private facilities iff Covid-19 clinical
+    summary URLS follow the expected format. Otherwise, the x day positivity rate is calculates where
+    x = 7 - number of URLs that did not follow the expected format
+    :return: seven_day_positivity_rate, avg_includes_all_seven_days
+    """
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--no-sandbox")
+    os.environ["WDM_LOG_LEVEL"] = str(logging.WARNING)
+    chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+    # Get yesterday's date
+    yesterday = datetime.date.today() - datetime.timedelta(2)
+    past_week_dates = []
+    avg_includes_all_seven_days = True
+    for day in range(0, 7):
+        past_date = yesterday - datetime.timedelta(day)
+        # Format date to match: weekday_name-month-day-year
+        past_date_formatted = past_date.strftime("%A") + "-" + past_date.strftime("%B") + "-" + \
+            past_date.strftime("%d").lstrip("0") + "-" + past_date.strftime("%Y")
+        past_week_dates.append(past_date_formatted)
+
+    # Grab "Confirmed Cases" and "TOTAL TESTS TODAY" for the past seven days
+    daily_totals = []
+    for date in past_week_dates:
+        # Collect table rows for each date
+        table_rows = []
+        # Construct the URL for  Covid-19 Clinical management summary
+        url = "https://www.moh.gov.jm/covid-19-clinical-management-summary-for-" + date
+        try:
+            driver.get(url)
+            # Get the rows in the table
+            items = driver.find_elements_by_tag_name("tr")
+            for item in items:
+                table_rows.append(item.text.replace("\n", " ").split(' '))
+            try:
+                # Want [{"confirmed_cases":000, "total_tests_today":000}, ...}
+                # Indexing is not reliable. Only thing certain is a table with rows
+                confirmed_cases = [item for item in table_rows if item[0:2] == ['Confirmed', 'Cases']][0][-2]
+                total_tests_today = [item for item in table_rows if item[0:3] == ['TOTAL', 'TESTS', 'TODAY']][0][-1]
+            except IndexError:
+                print("Erroneous url: ", url)
+                print("Oops, looks like the url for that date does not follow the format: weekday_name-month-day-year")
+                print("Perhaps add a note * to the total?")
+                avg_includes_all_seven_days = False
+                continue
+            daily_totals.append({"confirmed_cases": int(confirmed_cases.replace(',', '')),
+                                 "total_tests_today": int(total_tests_today.replace(',', ''))
+                                 })
+        except IndexError:
+            continue
+        except Exception as e:
+            print("Unhandled Exception: ", e)
+            return
+    total_confirmed_cases = sum(item['confirmed_cases'] for item in daily_totals)
+    total_tests = sum(item['total_tests_today'] for item in daily_totals)
+    seven_day_positivity_rate = (total_confirmed_cases / total_tests) * 100
+    return seven_day_positivity_rate, avg_includes_all_seven_days
+
 
 getData()
 
